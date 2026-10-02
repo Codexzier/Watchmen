@@ -1,0 +1,8 @@
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Servo (1.3.0)
+      - ArduinoGraphics (1.1.5)
+default_profile: default

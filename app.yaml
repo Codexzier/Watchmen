@@ -1,0 +1,7 @@
+name: Watchmen
+icon: 👁️
+description: Kamera-Plattform mit Personen-/Auto-/Muster-Erkennung, Nachführung, Human-Radar, Ruhemodus und Web-Kalibrierung
+
+bricks:
+  - arduino:web_ui
+  - arduino:object_detection

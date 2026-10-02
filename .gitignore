@@ -1,0 +1,9 @@
+# Laufzeitdaten (Konfiguration wird auf dem UNO Q in /app/data gespeichert)
+data/
+__pycache__/
+*.pyc
+# KiCad Sicherungen/temporäre Dateien
+*.kicad_prl
+*-backups/
+fp-info-cache
+_autosave-*
