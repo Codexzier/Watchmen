@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))             # Ordner dieses Sk
 sys.path.insert(0, HERE)                                      # damit shield_design gefunden wird
 import shield_design as D                                     # noqa: E402  Bauteile und Netze
 
-OUT = os.path.abspath(os.path.join(HERE, "..", D.BOARD_NAME))  # Zielordner des KiCad-Projekts
+OUT = os.path.abspath(os.path.join(HERE, "..", D.BOARD_NAME))  # Zielordner des KiCad-Projekts (je nach Variante neu gesetzt)
 SYMBOL_DIR = "/usr/share/kicad/symbols"                       # installierte Symbolbibliotheken
 FOOTPRINT_DIR = "/usr/share/kicad/footprints"                 # installierte Footprint-Bibliotheken
 ORIGIN = (60.0, 40.0)                                         # Lage der Platine auf dem Zeichenblatt [mm]
@@ -413,6 +413,8 @@ def draw_outline(board):                                      # Platinenkontur u
     pts = D.OUTLINE + [D.OUTLINE[0]]                          # Polygon schließen
     for (x1, y1), (x2, y2) in zip(pts, pts[1:]):              # jede Kante
         add_segment(board, pcbnew.Edge_Cuts, x1, y1, x2, y2, 0.1)  # auf Edge.Cuts
+    if D.WINDOW is None:                                      # Variante ohne Fenster
+        return                                                # nur die Außenkontur
     x1, y1, x2, y2 = D.WINDOW                                 # Fenster
     r = D.WINDOW_RADIUS                                       # Eckenradius
     add_segment(board, pcbnew.Edge_Cuts, x1 + r, y1, x2 - r, y1)  # oben
@@ -554,6 +556,8 @@ def add_silkscreen(board):                                    # Beschriftungen a
     add_text(board, "5V>VMOT", pcbnew.ToMM(jp2.x) - ORIGIN[0], pcbnew.ToMM(jp2.y) - ORIGIN[1] + 1.8, 0.7)  # Beschriftung
     t = add_text(board, "Watchmen Shield - Arduino UNO Q", 62.3, 30.0, 1.0, layer=pcbnew.B_SilkS, angle=90)  # Rückseite
     t.SetMirrored(True)                                       # gespiegelt (von unten lesbar)
+    if D.WINDOW is None:                                      # Variante ohne Fenster
+        return                                                # kein Hinweis nötig
     cx = (D.WINDOW[0] + D.WINDOW[2]) / 2                      # Mitte des Fensters
     add_text(board, "Fenster LED-Matrix UNO Q", cx, D.WINDOW[1] + 2.0, 0.9, layer=pcbnew.F_Fab)  # Hinweis auf Fab-Lage
 
@@ -648,9 +652,11 @@ def autoroute(board, pcb_path, netinfo, jar, java, passes):   # Autorouting mit 
 def add_edge_keepouts(board, width=0.8):                      # Sperrflächen für Leiterbahnen entlang aller Kanten
     import math                                               # Winkelrechnung
     import pcbnew                                             # KiCad-Modul
-    x1, y1, x2, y2 = D.WINDOW                                 # Fenster
-    window = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]         # Fenster als Rechteck (Ecken großzügig)
-    for poly in (D.OUTLINE, window):                          # Außenkontur und Fenster
+    polys = [D.OUTLINE]                                       # Außenkontur
+    if D.WINDOW is not None:                                  # Variante mit Fenster
+        x1, y1, x2, y2 = D.WINDOW                             # Fenster
+        polys.append([(x1, y1), (x2, y1), (x2, y2), (x1, y2)])  # Fenster als Rechteck (Ecken großzügig)
+    for poly in polys:                                        # Außenkontur und ggf. Fenster
         pts = poly + [poly[0]]                                # schließen
         for (ax, ay), (bx, by) in zip(pts, pts[1:]):          # jede Kante
             length = math.hypot(bx - ax, by - ay)             # Länge
@@ -703,9 +709,10 @@ def free_spot(board, x, y, radius, gnd_code, skip=()):        # ist an (x, y) Pl
     edge = 0.5 + radius                                       # Mindestabstand zum Rand (außerhalb der Rand-Sperrstreifen)
     if not point_in_poly(x, y, D.OUTLINE):                    # außerhalb der Platine
         return False                                          # nein
-    wx1, wy1, wx2, wy2 = D.WINDOW                             # Fenster
-    if wx1 - edge < x < wx2 + edge and wy1 - edge < y < wy2 + edge:  # im/zu nah am Fenster
-        return False                                          # nein
+    if D.WINDOW is not None:                                  # Variante mit Fenster
+        wx1, wy1, wx2, wy2 = D.WINDOW                         # Fenster
+        if wx1 - edge < x < wx2 + edge and wy1 - edge < y < wy2 + edge:  # im/zu nah am Fenster
+            return False                                      # nein
     pts = D.OUTLINE + [D.OUTLINE[0]]                          # Außenkontur
     for (ax, ay), (bx, by) in zip(pts, pts[1:]):              # Abstand zu jeder Außenkante
         dx, dy = bx - ax, by - ay                             # Kantenrichtung
@@ -942,7 +949,11 @@ def main():
     ap.add_argument("--java", default=os.environ.get("JAVA", "java"), help="Java 25 (für Freerouting 2.4)")
     ap.add_argument("--passes", type=int, default=40, help="max. Durchläufe des Autorouters")
     ap.add_argument("--no-route", action="store_true", help="ohne Autorouting (nur Platzierung)")
+    ap.add_argument("--variant", choices=sorted(D.VARIANTS), default="v1", help="v1 = mit Fenster, v2 = ohne Fenster")
     args = ap.parse_args()                                    # auswerten
+    global OUT                                                # Zielordner hängt von der Variante ab
+    D.use_variant(args.variant)                               # Variante übernehmen
+    OUT = os.path.abspath(os.path.join(HERE, "..", D.BOARD_NAME))  # Zielordner der Variante
     import pcbnew                                             # KiCad-Modul (bricht hier ab, wenn KiCad fehlt)
     os.makedirs(os.path.join(OUT, "routing"), exist_ok=True)  # Ausgabeordner anlegen
     sch_path = os.path.join(OUT, D.BOARD_NAME + ".kicad_sch")  # Schaltplan

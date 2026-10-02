@@ -17,7 +17,7 @@ der UNO Q selbst ausliefert. Dazu gibt es ein passendes **Shield (KiCad-Projekt)
 | `sketch/` | Mikrocontroller-Teil (STM32U585): Servos, Schrittmotor, Schalter, WS2812B, LED-Matrix, RD-03D, MPU6050, A0 |
 | `python/` | Linux-Teil: Zustandsmaschine, Kamera, Erkennung, Nachführung, Radar, Kalibrierung, Webschnittstelle |
 | `assets/` | Webseite (Live-Bild, Halbkreis-Radar, Kalibrierung, Einstellungen, Marker-Druck) |
-| `hardware/` | Shield für den UNO Q: Schaltplan, Platine, Gerber – siehe [hardware/README.md](hardware/README.md) |
+| `hardware/` | Shield für den UNO Q in zwei Versionen (v1 mit, v2 ohne Fenster über der LED-Matrix): Schaltplan, Platine, Gerber – siehe [hardware/README.md](hardware/README.md) |
 | `docs/` | [Verdrahtung und Pinbelegung](docs/Verdrahtung.md), Bilder |
 | `tests/` | Simulationstests für Sketch, Python-Logik und Webseite |
 
@@ -151,5 +151,5 @@ Umgebung nicht möglich (Download gesperrt). Besonders beachten:
   Pegelwandler und Verdrahtung prüfen.
 * **RD-03D**: Seitenrichtung je nach Einbau → ggf. „Radar-X-Achse spiegeln“.
 * **MPU6050**: „oben“-Achse passend zur Einbaulage einstellen (siehe Verdrahtung).
-* **Shield**: Lage des Fensters über der LED-Matrix mit der 1:1-Vorlage prüfen (siehe
-  [hardware/README.md](hardware/README.md)).
+* **Shield v1**: Lage des Fensters über der LED-Matrix mit der 1:1-Vorlage prüfen (siehe
+  [hardware/README.md](hardware/README.md)). Das Shield v2 hat kein Fenster und verdeckt die Matrix.

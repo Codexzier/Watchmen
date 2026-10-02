@@ -4,9 +4,25 @@ Shield im UNO-Formfaktor für den **Arduino UNO Q** mit allen Anschlüssen des W
 Schaltplan und Platine werden vollständig aus `generator/shield_design.py` erzeugt – Bauteile,
 Netze und Platzierung stehen nur dort.
 
-![Platine oben](watchmen-shield/docs/platine_oben.png)
+## Zwei Versionen
+
+| Version | Ordner | Unterschied |
+|---|---|---|
+| **v1.0** | `watchmen-shield/` | mit **Fenster** über der LED-Matrix des UNO Q (Matrix bleibt sichtbar) |
+| **v2.0** | `watchmen-shield-v2/` | **ohne Fenster** – geschlossene Platine, Masseflächen auch in der Mitte |
+
+Bauteile, Schaltplan, **Pinbelegung** und Platzierung sind bei beiden Versionen identisch; die
+Stückliste ist gleich. Bei v2 verdeckt das Shield die LED-Matrix – die Textausgaben
+(`CAR`, `HUMEN`, `MARK`, `ERR`) sind dann nur noch auf der Webseite bzw. über die WS2812B-LEDs zu
+erkennen. Für v2 entfällt die Fenster-Prüfung mit der 1:1-Vorlage (Punkt 1 unten).
+
+| v1.0 (mit Fenster) | v2.0 (ohne Fenster) |
+|---|---|
+| ![Platine v1 oben](watchmen-shield/docs/platine_oben.png) | ![Platine v2 oben](watchmen-shield-v2/docs/platine_oben.png) |
 
 ## Inhalt
+
+Für v2 gelten dieselben Dateien im Ordner `watchmen-shield-v2/` (Dateinamen mit `watchmen-shield-v2`).
 
 | Pfad | Inhalt |
 |---|---|
@@ -32,7 +48,7 @@ Netze und Platzierung stehen nur dort.
 
 ## Vor der Bestellung prüfen (wichtig!)
 
-1. **Fenster für die LED-Matrix**: Das Shield hat einen Ausschnitt (36,5 × 30,5 mm, x = 24,5…61 mm,
+1. **Fenster für die LED-Matrix (nur v1)**: Das Shield hat einen Ausschnitt (36,5 × 30,5 mm, x = 24,5…61 mm,
    y = 11…41,5 mm von links oben, USB-C links), damit die 13×8-Matrix des UNO Q sichtbar bleibt.
    Die genaue Lage der Matrix konnte ich nicht aus einer Maßzeichnung übernehmen.
    → `docs/outline_1zu1.pdf` in **Originalgröße (100 %)** drucken, ausschneiden, auf den UNO Q legen.
@@ -67,8 +83,13 @@ Voraussetzungen: KiCad 7 (mit Python-Modul `pcbnew`), Java 25 und
 ```bash
 /usr/bin/python3 hardware/generator/build_shield.py \
     --freerouting /pfad/freerouting-2.4.1-executable.jar \
-    --java /usr/lib/jvm/java-25-openjdk-amd64/bin/java
+    --java /usr/lib/jvm/java-25-openjdk-amd64/bin/java \
+    --variant v1          # v1 = mit Fenster (Standard), v2 = ohne Fenster
 ```
+
+Die Varianten stehen in `VARIANTS` in `generator/shield_design.py` (Projektname, Revision, Fenster).
+Freerouting arbeitet nicht vollständig reproduzierbar: Ein erneuter Lauf ergibt gleichwertige, aber
+nicht bitgleiche Leiterbahnen.
 
 Ablauf: Schaltplan schreiben → Netzliste mit `kicad-cli` exportieren und gegen den Entwurf prüfen →
 Platine aufbauen (Kontur, Fenster, Bauteile, Netzklassen) → Autorouting (Signale und Versorgung;

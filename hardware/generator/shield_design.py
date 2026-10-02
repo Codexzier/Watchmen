@@ -22,6 +22,20 @@ OUTLINE = [(0.0, 0.0), (64.52, 0.0), (66.04, 1.52), (66.04, 12.95), (68.58, 15.4
 WINDOW = (24.5, 11.0, 61.0, 41.5)                              # Ausschnitt in mm
 WINDOW_RADIUS = 1.5                                           # Eckenradius des Ausschnitts
 
+# Varianten der Platine – gleiche Bauteile, Netze, Pinbelegung und Platzierung:
+#   v1 = mit Fenster über der LED-Matrix, v2 = ohne Fenster (geschlossene Platine)
+VARIANTS = {                                                  # Name → abweichende Einstellungen
+    "v1": {"BOARD_NAME": "watchmen-shield", "BOARD_REV": "1.0", "WINDOW": WINDOW},  # mit Ausschnitt
+    "v2": {"BOARD_NAME": "watchmen-shield-v2", "BOARD_REV": "2.0", "WINDOW": None},  # ohne Ausschnitt
+}
+
+
+def use_variant(name):                                        # wählt eine Variante aus
+    globals().update(VARIANTS[name])                          # Einstellungen dieser Datei überschreiben
+    for i, (text, pos, angle) in enumerate(SILK_NAMES):       # Beschriftungen durchsuchen
+        if text.startswith("WATCHMEN v"):                     # Versionsaufdruck gefunden
+            SILK_NAMES[i] = ("WATCHMEN v" + BOARD_REV, pos, angle)  # neue Revision eintragen
+
 # Befestigungslöcher des UNO-Formfaktors (M3)
 HOLES = [(13.97, 50.80), (15.24, 2.54), (66.04, 45.72), (66.04, 17.78)]  # Lochmitten
 
@@ -200,7 +214,7 @@ SILK_NAMES = [
     ("MOTOR 5V", (10.3, 37.4), 90),
     ("+", (8.6, 40.0), 0),
     ("STEPPER", (7.4, 13.2), 90),
-    ("WATCHMEN v1.0", (6.6, 3.0), 0),
+    ("WATCHMEN v" + BOARD_REV, (6.6, 3.0), 0),
 ]
 
 # Stiftleisten zum UNO, deren Pin-Namen auf der Unterseite gedruckt werden (oben ist kein Platz)
