@@ -17,6 +17,8 @@ typedef uint8_t byte;
 #define OUTPUT 1
 #define INPUT_PULLUP 2
 #define A0 14
+#define A1 15
+#define A2 16
 #define MSBFIRST 1
 #define SPI_MODE0 0
 

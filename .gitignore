@@ -7,3 +7,5 @@ __pycache__/
 *-backups/
 fp-info-cache
 _autosave-*
+# Zwischendateien des Autorouters
+hardware/*/routing/

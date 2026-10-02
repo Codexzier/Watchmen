@@ -27,8 +27,8 @@
 const int PIN_SWITCH      = 2;      // Kontaktschalter der Drehachse (schaltet gegen GND)
 const int PIN_MPU_INT     = 3;      // INT-Ausgang des MPU6050 (reserviert für Erweiterungen)
 const int PIN_STEP_IN1    = 4;      // ULN2003 Eingang IN1 (Schrittmotor)
-const int PIN_SERVO_TILT  = 5;      // Servo 1: Neigung der Plattform mit Kamera
-const int PIN_SERVO_RADAR = 6;      // Servo 2: Neigung des RD-03D (wird waagerecht gehalten)
+const int PIN_SERVO_TILT  = A1;     // Servo 1: Neigung der Plattform mit Kamera (A1 als Digitalausgang)
+const int PIN_SERVO_RADAR = A2;     // Servo 2: Neigung des RD-03D, wird waagerecht gehalten (A2 als Digitalausgang)
 const int PIN_STEP_IN2    = 7;      // ULN2003 Eingang IN2 (Schrittmotor)
 const int PIN_STEP_IN3    = 8;      // ULN2003 Eingang IN3 (Schrittmotor)
 const int PIN_STEP_IN4    = 9;      // ULN2003 Eingang IN4 (Schrittmotor)
@@ -36,6 +36,8 @@ const int PIN_STEP_IN4    = 9;      // ULN2003 Eingang IN4 (Schrittmotor)
 // Hinweis: D11 (SPI MOSI) geht über einen Pegelwandler an DIN der ersten WS2812B.
 // Hinweis: D0/D1 (Serial1) gehen an das RD-03D, SDA/SCL (Wire) an den MPU6050.
 const int PIN_MOTOR_SENSE = A0;     // 3,3 V an A0 bedeutet: Servos und Schrittmotor sind da
+// Hinweis: D5/D6 sind frei. Die Servos hängen an A1/A2, weil deren Stecker auf dem Shield
+//          direkt neben der Analog-Leiste liegen (kürzere Leitungen, siehe docs/Verdrahtung.md).
 
 // ------------------------------- Zeit-Konstanten -------------------------------------
 const int FW_VERSION                 = 1;     // Versionsnummer dieses Sketches
@@ -65,7 +67,7 @@ const int   HOMING_DONE      = 3;       // Referenzfahrt: erfolgreich beendet
 const int   HOMING_FAILED    = -1;      // Referenzfahrt: Schalter nicht gefunden
 
 // Halbschritt-Folge für 28BYJ-48 (Bit3=IN1, Bit2=IN2, Bit1=IN3, Bit0=IN4)
-const uint8_t HALFSTEP[8] = {0b1000, 0b1100, 0b0100, 0b0110, 0b0010, 0b0011, 0b0001, 0b1001};
+const uint8_t HALFSTEP[8] = {0b1000, 0b1100, 0b0100, 0b0110, 0b0010, 0b0011, 0b0001, 0b1001};  // 8 Phasen
 
 // ------------------------------- Ereignis-Codes an Linux -----------------------------
 const int EVT_HOMING_DONE    = 1;   // Referenzfahrt fertig
@@ -882,7 +884,7 @@ int rpcVersion() {                                  // liefert die Sketch-Versio
 //  setup() und loop()
 // =====================================================================================
 
-void setup() {
+void setup() {                                      // wird einmal beim Start ausgeführt
   pinMode(PIN_SWITCH, INPUT_PULLUP);                // Schalter mit internem Pull-up
   pinMode(PIN_MPU_INT, INPUT);                      // MPU-Interrupt (derzeit ungenutzt)
   pinMode(PIN_STEP_IN1, OUTPUT);                    // Schrittmotor-Ausgänge ...
@@ -933,7 +935,7 @@ void setup() {
   Monitor.println("Watchmen MCU gestartet");        // Debug-Ausgabe
 }
 
-void loop() {
+void loop() {                                       // wird danach endlos wiederholt
   unsigned long nowMs = millis();                   // aktuelle Zeit in Millisekunden
   unsigned long nowUs = micros();                   // aktuelle Zeit in Mikrosekunden
   updateMotorSense(nowMs);                          // A0: Motoren angeschlossen?

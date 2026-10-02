@@ -1,0 +1,34 @@
+Anzahl;Referenzen;Wert;Footprint;Symbol
+1;C1;470uF 10V;Capacitor_THT:CP_Radial_D8.0mm_P3.50mm;Device:C_Polarized
+5;C2,C3,C4,C6,C7;100nF;Capacitor_SMD:C_0805_2012Metric;Device:C
+1;C5;10uF;Capacitor_SMD:C_0805_2012Metric;Device:C
+1;D1;gruen;LED_SMD:LED_0805_2012Metric;Device:LED
+1;D2;BAT54S;Package_TO_SOT_SMD:SOT-23;Diode:BAT54S
+1;F1;3A hold;Fuse:Fuse_1812_4532Metric;Device:Polyfuse
+4;H1,H2,H3,H4;M3;MountingHole:MountingHole_3.2mm_M3;Mechanical:MountingHole
+1;J1;UNO Power;Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical;Connector_Generic:Conn_01x08
+1;J10;RD-03D;Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical;Connector_Generic:Conn_01x04
+1;J11;MPU6050 GY-521;Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical;Connector_Generic:Conn_01x08
+1;J12;WS2812B;Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical;Connector_Generic:Conn_01x03
+1;J2;UNO Analog;Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical;Connector_Generic:Conn_01x06
+1;J3;UNO D0-D7;Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical;Connector_Generic:Conn_01x08
+1;J4;UNO D8-SCL;Connector_PinHeader_2.54mm:PinHeader_1x10_P2.54mm_Vertical;Connector_Generic:Conn_01x10
+1;J5;MOTOR 5V;TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal;Connector:Screw_Terminal_01x02
+1;J6;28BYJ-48;Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical;Connector_Generic:Conn_01x05
+1;J7;SERVO 1 Kamera;Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical;Connector_Generic:Conn_01x03
+1;J8;SERVO 2 Radar;Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical;Connector_Generic:Conn_01x03
+1;J9;REF SCHALTER;Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical;Connector_Generic:Conn_01x02
+1;JP1;A0 Quelle;Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical;Jumper:Jumper_3_Open
+1;JP2;5V->VMOT;Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm;Jumper:SolderJumper_2_Open
+1;Q1;AO3401A;Package_TO_SOT_SMD:SOT-23;Transistor_FET:AO3401A
+2;R1,R13;10k;Resistor_SMD:R_0805_2012Metric;Device:R
+2;R11,R12;470;Resistor_SMD:R_0805_2012Metric;Device:R
+1;R14;330;Resistor_SMD:R_0805_2012Metric;Device:R
+1;R2;1k5;Resistor_SMD:R_0805_2012Metric;Device:R
+1;R3;15k;Resistor_SMD:R_0805_2012Metric;Device:R
+1;R4;33k;Resistor_SMD:R_0805_2012Metric;Device:R
+2;R5,R10;1k;Resistor_SMD:R_0805_2012Metric;Device:R
+1;R6;100k;Resistor_SMD:R_0805_2012Metric;Device:R
+2;R7,R8;220;Resistor_SMD:R_0805_2012Metric;Device:R
+1;U1;ULN2003A;Package_SO:SOIC-16_3.9x9.9mm_P1.27mm;Transistor_Array:ULN2003A
+1;U2;74AHCT1G125;Package_TO_SOT_SMD:SOT-23-5;74xGxx:74AHCT1G125

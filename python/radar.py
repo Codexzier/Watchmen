@@ -13,17 +13,17 @@ SPEED_SENTINELS = (248, 256)                                  # Platzhalterwerte
 
 
 @dataclass                                                    # Datenklasse für ein Radar-Ziel
-class RadarTarget:
+class RadarTarget:                                            # ein vom Radar erfasstes Lebewesen
     x: int                                                    # seitlicher Abstand [mm] (+ = rechts vom Radar)
     y: int                                                    # Abstand nach vorne [mm]
     speed: int                                                # Geschwindigkeit [cm/s] (Vorzeichen = Richtung)
     index: int                                                # Nummer im Radar-Rahmen (0..2)
 
-    @property
+    @property                                                 # wie ein Attribut lesbar
     def distance(self):                                       # direkter Abstand zum Radar [mm]
         return math.hypot(self.x, self.y)                     # Satz des Pythagoras
 
-    @property
+    @property                                                 # wie ein Attribut lesbar
     def angle_deg(self):                                      # Winkel zur Blickrichtung [Grad] (+ = rechts)
         return math.degrees(math.atan2(self.x, self.y))       # atan2(seitlich, vorne)
 

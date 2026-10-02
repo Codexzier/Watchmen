@@ -21,7 +21,7 @@ logger = Logger("watchmen.vision")                            # eigener Logger f
 
 
 @dataclass                                                    # Ergebnis der Objekterkennung
-class Detection:
+class Detection:                                              # ein erkanntes Objekt
     label: str                                                # Klassenname des Modells (z.B. "person")
     kind: str                                                 # "person", "car" oder "other"
     confidence: float                                         # Sicherheit in Prozent (0..100)
@@ -29,7 +29,7 @@ class Detection:
 
 
 @dataclass                                                    # Ergebnis der Marker-Erkennung
-class Marker:
+class Marker:                                                 # ein erkannter ArUco-Marker
     marker_id: int                                            # Nummer des ArUco-Markers
     center: tuple                                             # Mittelpunkt (x, y) im angezeigten Bild
     corners: np.ndarray                                       # 4 Eckpunkte
@@ -266,7 +266,7 @@ class Vision:                                                 # Kamera und Bilda
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (200, 200, 200), 2, cv2.LINE_AA)  # Schrift, Farbe
         self.publish(img, quality=60)                         # wie ein Kamerabild ablegen
 
-    @staticmethod
+    @staticmethod                                             # braucht kein Objekt (reine Funktion)
     def annotate(frame, detections=(), markers=(), target=None, selected_box=None, info=""):  # zeichnet Ergebnisse ein
         img = frame.copy()                                    # Original nicht verändern
         h, w = img.shape[:2]                                  # Bildgröße
