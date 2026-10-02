@@ -36,6 +36,12 @@ class Marker:
     area: float                                               # Fläche in Pixeln (größer = näher)
 
 
+def ascii_text(text):                                         # OpenCV-Schrift kennt nur ASCII-Zeichen
+    for a, b in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("Ä", "Ae"), ("Ö", "Oe"), ("Ü", "Ue"), ("ß", "ss"), ("–", "-"), ("°", " Grad")):  # Ersetzungen
+        text = text.replace(a, b)                             # deutsche Sonderzeichen umschreiben
+    return text.encode("ascii", "replace").decode("ascii")    # alles Übrige durch "?" ersetzen
+
+
 def orient(frame, flipped):                                   # dreht das Bild bei Deckenmontage
     return cv2.rotate(frame, cv2.ROTATE_180) if flipped else frame  # 180° drehen oder unverändert
 
@@ -254,6 +260,7 @@ class Vision:                                                 # Kamera und Bilda
         w, h = self.cfg["camera_width"], self.cfg["camera_height"]  # Bildgröße
         img = np.zeros((h, w, 3), np.uint8)                   # schwarzes Bild
         img[:] = (40, 30, 20)                                 # dunkler Hintergrund
+        text = ascii_text(text)                               # nur druckbare Zeichen
         size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.9, 2)[0]  # Textgröße
         cv2.putText(img, text, ((w - size[0]) // 2, (h + size[1]) // 2),  # Text mittig
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (200, 200, 200), 2, cv2.LINE_AA)  # Schrift, Farbe
@@ -279,5 +286,5 @@ class Vision:                                                 # Kamera und Bilda
             cv2.circle(img, (int(target[0]), int(target[1])), 8, (0, 255, 255), 2)  # Zielpunkt in Gelb
             cv2.line(img, (w // 2, h // 2), (int(target[0]), int(target[1])), (0, 255, 255), 1)  # Linie zur Mitte
         if info:                                              # Statustext?
-            cv2.putText(img, info, (8, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)  # unten links
+            cv2.putText(img, ascii_text(info), (8, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)  # unten links
         return img                                            # fertiges Bild

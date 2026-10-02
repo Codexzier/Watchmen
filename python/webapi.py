@@ -12,7 +12,7 @@ import time                                                   # Wartezeiten im B
 from fastapi.responses import Response, StreamingResponse     # HTTP-Antworten (Bild, Stream)
 
 from config import mcu_vector_from                            # Zahlenliste für den Sketch
-from controller import CALIB_STATES                           # Zustände der Kalibrierung
+from controller import STATE_CALIB, STATE_CALIB2_MANUAL        # Zustände mit erlaubter Handsteuerung
 from vision import marker_png                                 # Marker-Bild erzeugen
 
 
@@ -28,7 +28,7 @@ def register(ui, controller, vision, cfg, mcu):               # meldet alle Funk
         ui.on_message(name, queue_cmd(name))                  # anmelden
 
     def in_calibration():                                     # sind Handbewegungen erlaubt?
-        return controller.state in CALIB_STATES               # nur während der Kalibrierung
+        return controller.state in (STATE_CALIB, STATE_CALIB2_MANUAL)  # nur in der Kalibrierung, nicht während der Automatik
 
     def cal_tilt(sid, data):                                  # Schieberegler Servo 1
         if in_calibration():                                  # nur in der Kalibrierung

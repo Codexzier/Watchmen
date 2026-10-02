@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Watchmen</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%230b7a75' d='M12 5C6 5 2 12 2 12s4 7 10 7 10-7 10-7-4-7-10-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z'/%3E%3Ccircle fill='%230b7a75' cx='12' cy='12' r='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" class="logo" aria-hidden="true"><path d="M12 5C6 5 2 12 2 12s4 7 10 7 10-7 10-7-4-7-10-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/><circle cx="12" cy="12" r="2"/></svg>
+      <span>Watchmen</span>
+    </div>
+    <div id="stateBadge" class="badge">Verbinde …</div>
+    <div id="conn" class="conn off" title="Verbindung zur Platine"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="live">Live</button>
+    <button class="tab" data-tab="calib">Kalibrierung</button>
+    <button class="tab" data-tab="settings">Einstellungen</button>
+    <button class="tab" data-tab="marker">Muster</button>
+  </nav>
+
+  <main>
+    <!-- ============================== LIVE ============================== -->
+    <section id="tab-live" class="tabpane active">
+      <div class="grid-live">
+        <div class="card">
+          <div class="card-head"><h2>Kamera</h2><span id="fps" class="muted"></span></div>
+          <div class="video-wrap"><img id="video" src="stream" alt="Kamerabild"></div>
+          <div class="detect-row">
+            <div id="labelBox" class="label-box none">–</div>
+            <div id="detList" class="det-list"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Radar (RD-03D)</h2><span id="radarInfo" class="muted"></span></div>
+          <canvas id="radar" width="640" height="360"></canvas>
+          <div class="legend">
+            <span><i class="dot dot-target"></i>Lebewesen</span>
+            <span><i class="dot dot-selected"></i>verfolgte Person</span>
+            <span><i class="swatch swatch-fov"></i>Kamera-Sichtfeld</span>
+            <span><i class="swatch swatch-wake"></i>Weckabstand</span>
+          </div>
+          <table class="radar-table" id="radarTable"></table>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h2>Betrieb</h2>
+          <dl class="kv">
+            <dt>Zustand</dt><dd id="kvState">–</dd>
+            <dt>Ruhemodus in</dt><dd id="kvSleep">–</dd>
+            <dt>Montage</dt><dd id="kvMount">–</dd>
+            <dt>Nachführung</dt><dd id="kvMotion">–</dd>
+          </dl>
+          <div class="btn-row">
+            <button data-cmd="wake">Aufwecken</button>
+            <button data-cmd="sleep" class="ghost">Ruhemodus</button>
+            <button data-cmd="retry_homing" class="ghost">Referenzfahrt</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Mikrocontroller</h2>
+          <dl class="kv">
+            <dt>Verbindung</dt><dd id="kvMcu">–</dd>
+            <dt>Motoren (A0)</dt><dd id="kvMotors">–</dd>
+            <dt>Referenz</dt><dd id="kvHomed">–</dd>
+            <dt>Drehachse</dt><dd id="kvPan">–</dd>
+            <dt>Neigung Kamera</dt><dd id="kvTilt">–</dd>
+            <dt>Neigung Radar</dt><dd id="kvRadarServo">–</dd>
+            <dt>Kontaktschalter</dt><dd id="kvSwitch">–</dd>
+            <dt>MPU6050</dt><dd id="kvMpu">–</dd>
+            <dt>RD-03D</dt><dd id="kvRadar">–</dd>
+          </dl>
+        </div>
+        <div class="card">
+          <h2>Meldungen</h2>
+          <ul id="events" class="events"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== KALIBRIERUNG ============================== -->
+    <section id="tab-calib" class="tabpane">
+      <div id="calibNoMotors" class="notice warn hidden">Keine Servos/Schrittmotor angeschlossen (Pin A0 ohne 3,3 V) – eine Kalibrierung ist nicht möglich. Es läuft nur die Erkennung mit Anzeige.</div>
+      <div id="calibClosed" class="notice hidden">
+        <p>Die Kalibrierung ist geschlossen. Zum Ändern der Bereiche bzw. Richtungen die Kalibrierung öffnen (Nachführung pausiert solange).</p>
+        <div id="calibSummary" class="summary"></div>
+        <button data-cmd="cal_enter">Kalibrierung öffnen</button>
+      </div>
+
+      <div id="calibBody">
+        <div class="steps">
+          <div id="step1" class="step">1 · Bereiche</div>
+          <div id="step2" class="step">2 · Richtungen</div>
+          <div id="step3" class="step">3 · Fertig</div>
+        </div>
+
+        <div class="grid-calib">
+          <div class="col">
+          <div class="card video-small">
+            <div class="card-head"><h2>Kamerabild</h2><span id="calibStateText" class="muted"></span></div>
+            <div class="video-wrap"><img id="video2" alt="Kamerabild"></div>
+          </div>
+          <div class="card">
+            <h2>Kalibrierung 1 – Schrittmotor (Drehen)</h2>
+            <dl class="kv compact">
+              <dt>Position</dt><dd id="calPan">–</dd>
+              <dt>Referenz</dt><dd id="calHomed">–</dd>
+              <dt>Kontaktschalter</dt><dd id="calSwitch">–</dd>
+            </dl>
+            <div class="btn-row">
+              <button data-cmd="cal_home">Referenzfahrt (Schalter anfahren)</button>
+              <button data-cmd="cal_stop" class="danger">Stopp</button>
+            </div>
+            <div class="jog">
+              <button data-jog="-500">−500</button><button data-jog="-100">−100</button><button data-jog="-10">−10</button>
+              <button data-jog="10">+10</button><button data-jog="100">+100</button><button data-jog="500">+500</button>
+            </div>
+            <label class="check"><input type="checkbox" id="stepper_invert"> Drehrichtung umkehren (falls die Referenzfahrt vom Schalter wegfährt)</label>
+            <div class="trip">
+              <label>Minimum<input type="number" step="1" id="pan_min"></label>
+              <label>Grundstellung<input type="number" step="1" id="pan_center"></label>
+              <label>Maximum<input type="number" step="1" id="pan_max"></label>
+            </div>
+            <div class="btn-row small">
+              <button data-take="pan_min" data-src="pan">Aktuell → Minimum</button>
+              <button data-take="pan_center" data-src="pan">Aktuell → Grundstellung</button>
+              <button data-take="pan_max" data-src="pan">Aktuell → Maximum</button>
+            </div>
+            <p class="hint">Position 0 = Kontaktschalter (wird nach jedem Einschalten neu angefahren). Halbschritte: 4096 ≈ eine Umdrehung.</p>
+          </div>
+
+          </div>
+          <div class="col">
+          <div class="card">
+            <h2>Kalibrierung 1 – Servo 1 (Neigung Kamera/Plattform)</h2>
+            <div class="slider-row">
+              <input type="range" id="tiltSlider" min="0" max="180" step="0.5" value="90">
+              <output id="tiltOut">90°</output>
+            </div>
+            <div class="trip">
+              <label>Minimum<input type="number" step="0.5" id="tilt_min"></label>
+              <label>Waagerecht<input type="number" step="0.5" id="tilt_level"></label>
+              <label>Maximum<input type="number" step="0.5" id="tilt_max"></label>
+            </div>
+            <div class="btn-row small">
+              <button data-take="tilt_min" data-src="tilt">Aktuell → Minimum</button>
+              <button data-take="tilt_level" data-src="tilt">Aktuell → Waagerecht</button>
+              <button data-take="tilt_max" data-src="tilt">Aktuell → Maximum</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Kalibrierung 1 – Servo 2 (Neigung Radar)</h2>
+            <div class="slider-row">
+              <input type="range" id="radarSlider" min="0" max="180" step="0.5" value="90">
+              <output id="radarOut">90°</output>
+            </div>
+            <div class="trip">
+              <label>Minimum<input type="number" step="0.5" id="radar_min"></label>
+              <label>Waagerecht<input type="number" step="0.5" id="radar_level"></label>
+              <label>Maximum<input type="number" step="0.5" id="radar_max"></label>
+            </div>
+            <div class="btn-row small">
+              <button data-take="radar_min" data-src="radar">Aktuell → Minimum</button>
+              <button data-take="radar_level" data-src="radar">Aktuell → Waagerecht</button>
+              <button data-take="radar_max" data-src="radar">Aktuell → Maximum</button>
+            </div>
+            <div class="inline">
+              <label class="check"><input type="checkbox" id="radar_comp_enabled"> Radar automatisch waagerecht halten</label>
+              <label>Ausgleichsfaktor <input type="number" step="0.05" id="radar_comp_factor" class="w6"></label>
+            </div>
+            <p class="hint">Test: „Ausgleich testen“ drücken und dann den Schieberegler von Servo 1 bewegen. Das Radar muss waagerecht bleiben. Kippt es mit, das Vorzeichen des Faktors umdrehen (z.B. −1 ↔ 1).</p>
+            <div class="btn-row small"><button id="btnCompTest">Ausgleich testen</button></div>
+          </div>
+
+          <div class="card">
+            <h2>Erweitert</h2>
+            <div class="trip">
+              <label>Servo-Impuls 0° [µs]<input type="number" step="10" id="servo_us_min"></label>
+              <label>Servo-Impuls 180° [µs]<input type="number" step="10" id="servo_us_max"></label>
+              <label>Max. Suchweg [Schritte]<input type="number" step="100" id="homing_max_steps"></label>
+            </div>
+            <div class="btn-row">
+              <button id="btnSave1" class="primary">Einstellungen speichern</button>
+            </div>
+            <div id="calibErrors" class="notice warn hidden"></div>
+          </div>
+          </div>
+
+          <div class="card wide">
+            <h2>Kalibrierung 2 – Dreh- und Neigungsrichtung</h2>
+            <p>Nach dem Speichern der Bereiche: Kamera auf eine strukturierte Umgebung richten (keine leere Wand) und starten. Das System bewegt Drehachse und Neigung ein Stück und misst mit der Kamera, in welche Richtung sich das Bild verschiebt.</p>
+            <div class="btn-row">
+              <button id="btnStart2" class="primary">Bereit zur Kamerabewegung einstellen</button>
+            </div>
+            <div id="calib2Status" class="calib2-status"></div>
+            <div class="manual">
+              <h3>Falls die Automatik nicht klappt: Richtungen eintragen</h3>
+              <fieldset>
+                <legend>Drehrichtung</legend>
+                <label class="radio"><input type="radio" name="pan_dir" value="1"> Positive Schritte drehen die Kamera nach <b>rechts</b></label>
+                <label class="radio"><input type="radio" name="pan_dir" value="-1"> Positive Schritte drehen die Kamera nach <b>links</b></label>
+              </fieldset>
+              <fieldset>
+                <legend>Neigungsrichtung</legend>
+                <label class="radio"><input type="radio" name="tilt_dir" value="1"> Größerer Servowinkel neigt die Kamera nach <b>unten</b></label>
+                <label class="radio"><input type="radio" name="tilt_dir" value="-1"> Größerer Servowinkel neigt die Kamera nach <b>oben</b></label>
+              </fieldset>
+              <div class="btn-row"><button id="btnSave2" class="primary">Speichern</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row end">
+          <button data-cmd="cal_cancel" class="ghost">Kalibrierung verlassen</button>
+          <button id="btnReset" class="danger ghost">Kalibrierung zurücksetzen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== EINSTELLUNGEN ============================== -->
+    <section id="tab-settings" class="tabpane">
+      <form id="settingsForm" class="grid-settings">
+        <fieldset class="card">
+          <legend>Ruhemodus &amp; Wecken</legend>
+          <label>Ruhemodus nach [s] ohne Erkennung<input type="number" name="sleep_timeout_s" step="1"></label>
+          <label>Radar weckt unter Abstand [mm]<input type="number" name="radar_wake_distance_mm" step="100"></label>
+          <label>… mit Mindestgeschwindigkeit [cm/s]<input type="number" name="radar_wake_min_speed_cms" step="1"></label>
+          <label>… in Radar-Meldungen hintereinander<input type="number" name="radar_wake_frames" step="1"></label>
+          <label>Vibrationsschwelle MPU6050 [mg]<input type="number" name="vibration_threshold_mg" step="10"></label>
+        </fieldset>
+        <fieldset class="card">
+          <legend>Erkennung</legend>
+          <label>Mindest-Sicherheit (0–1)<input type="number" name="detection_confidence" step="0.05"></label>
+          <label>Klassen „Person“ (Komma)<input type="text" name="person_labels"></label>
+          <label>Klassen „Auto“ (Komma)<input type="text" name="car_labels"></label>
+          <label>Anzeige halten [s]<input type="number" name="hold_time_s" step="0.1"></label>
+          <label>ArUco-Wörterbuch
+            <select name="marker_dictionary">
+              <option>DICT_4X4_50</option><option>DICT_5X5_50</option><option>DICT_6X6_50</option><option>DICT_ARUCO_ORIGINAL</option>
+            </select>
+          </label>
+          <label>Marker-ID (−1 = jede)<input type="number" name="marker_id" step="1"></label>
+        </fieldset>
+        <fieldset class="card">
+          <legend>Montage</legend>
+          <label>Montageart
+            <select name="mount_mode">
+              <option value="auto">automatisch (MPU6050)</option>
+              <option value="normal">normal</option>
+              <option value="ceiling">Decke (kopfüber)</option>
+            </select>
+          </label>
+          <label>MPU-Achse „oben“ bei normaler Montage
+            <select name="mpu_up_axis"><option>z</option><option>-z</option><option>x</option><option>-x</option><option>y</option><option>-y</option></select>
+          </label>
+          <label class="check"><input type="checkbox" name="radar_mirror_x"> Radar-X-Achse spiegeln</label>
+          <label>Radar-Anzeige Reichweite [mm]<input type="number" name="radar_max_range_mm" step="500"></label>
+        </fieldset>
+        <fieldset class="card">
+          <legend>Nachführung &amp; Motoren</legend>
+          <label>Verstärkung (0–1)<input type="number" name="track_gain" step="0.05"></label>
+          <label>Totzone (Anteil halbe Bildbreite)<input type="number" name="track_deadband" step="0.01"></label>
+          <label>Befehlsabstand [s]<input type="number" name="track_interval_s" step="0.05"></label>
+          <label>Schrittmotor max. [Halbschritte/s]<input type="number" name="stepper_max_speed" step="10"></label>
+          <label>Halbschritte pro Umdrehung<input type="number" name="stepper_steps_per_rev" step="1"></label>
+          <label>Servo-Geschwindigkeit [°/s]<input type="number" name="servo_speed_dps" step="5"></label>
+        </fieldset>
+        <fieldset class="card">
+          <legend>Anzeige</legend>
+          <label>Matrix-Text Auto<input type="text" name="text_car" maxlength="30"></label>
+          <label>Matrix-Text Person<input type="text" name="text_person" maxlength="30"></label>
+          <label>Matrix-Text Muster<input type="text" name="text_marker" maxlength="30"></label>
+          <label>LED-Helligkeit (0–255)<input type="number" name="led_brightness" step="1"></label>
+        </fieldset>
+        <fieldset class="card">
+          <legend>Kamera</legend>
+          <label>Quelle (csi:0, usb:0, leer = automatisch)<input type="text" name="camera_source"></label>
+          <label>Breite<input type="number" name="camera_width" step="1"></label>
+          <label>Höhe<input type="number" name="camera_height" step="1"></label>
+          <label>Bilder/s<input type="number" name="camera_fps" step="1"></label>
+          <label>Bildwinkel horizontal [°]<input type="number" name="camera_hfov_deg" step="0.1"></label>
+          <label>Bildwinkel vertikal [°]<input type="number" name="camera_vfov_deg" step="0.1"></label>
+        </fieldset>
+        <div class="btn-row end full">
+          <span id="settingsMsg" class="muted"></span>
+          <button type="submit" class="primary">Einstellungen speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============================== MUSTER ============================== -->
+    <section id="tab-marker" class="tabpane">
+      <div class="grid-marker">
+        <div class="card">
+          <h2>Markantes Muster (ArUco-Marker)</h2>
+          <p>Das System erkennt ArUco-Marker – quadratische Schwarz/Weiß-Muster, die sehr schnell und zuverlässig gefunden werden. Sobald ein Marker im Bild ist, hat er die <b>höchste Priorität</b>: die Kamera dreht und neigt sich so, dass der Marker in der Bildmitte bleibt.</p>
+          <p>Marker ausdrucken (weißer Rand muss bleiben), auf festen Karton kleben und vor die Kamera halten. Ab ca. 10 cm Kantenlänge funktioniert die Erkennung auch auf mehrere Meter.</p>
+          <label>Marker-ID <input type="number" id="markerId" value="0" min="0" max="49" class="w6"></label>
+          <div class="btn-row">
+            <button id="btnMarkerShow">Anzeigen</button>
+            <button id="btnMarkerPrint" class="ghost">Drucken</button>
+          </div>
+        </div>
+        <div class="card center">
+          <img id="markerImg" alt="ArUco-Marker" class="marker-img">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="libs/socket.io.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
